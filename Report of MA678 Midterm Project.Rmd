@@ -93,7 +93,7 @@ Figure I shows the relationship between price and overall review scores. Althoug
 
 ```{r,message=FALSE,warning=FALSE,echo=FALSE,fig.height=4, fig.width= 10,fig.cap="Data was separate into Entire home type and Private room type. Different colors represent different neighbourhood categories.",fig.pos='h', fig.align = 'center', fig.pos="H"}
 ggplot(data = subset_listings)+
-  aes(y=log_price,x=log_house)+
+  aes(y=log_price,x=log_score)+
   geom_point(alpha = 0.3,aes(color = neighbourhood_cleansed))+
   labs(title = "price vs overall review scores",
        x="log(overall review score)",
@@ -105,7 +105,7 @@ ggplot(data = subset_listings)+
         legend.position="bottom") 
 ```
 
-Figure II shows the relationship between price and the number of bed. Most neighbourhood have the the trend is almost the same,pointing to top-right, although there exists some expectation. Also, entire room/apartment group seems have more similar trend than that of private room. When I fit the model, `beds` should take in account. 
+Figure II shows the relationship between price and the number of bed. Most neighbourhood have the trend is almost the same,pointing to top-right, although there exists some exception. Also, entire room/apartment group seems have more similar trend than that of private room. When I fit the model, `beds` should take in account. 
 
 ```{r,message=FALSE,warning=FALSE,echo=FALSE,fig.height=4, fig.width= 10,fig.cap="Data was separate into entire home/apt and private room. Different colors represent different neighbourhood categories.",fig.pos='h',fig.align = 'center', fig.pos="H"}
 ggplot(data = subset_listings)+
@@ -120,7 +120,7 @@ ggplot(data = subset_listings)+
         legend.position="bottom")
 ```
 
-Figure III shows the relationship between price and the number of bedroom. Most neighbourhood have the the trend is almost the same,pointing to top-right Also, entire room/apartment group seems have more similar trend than that of private room.Some neighbourhood don't have enough private room to investigate the relationship with price. When I fit the model, `bedrooms` should take in account.
+Figure III shows the relationship between price and the number of bedroom. Most neighbourhood have the trend is almost the same,pointing to top-right. Also, entire room/apartment group seems have more similar trend than that of private room.Some neighbourhood don't have enough private room to investigate the relationship with price. When I fit the model, `bedrooms` should take in account.
 
 
 ```{r,message=FALSE,warning=FALSE,echo=FALSE,fig.height=4, fig.width= 10,fig.cap="Data was separate into entire home/apt and private room. Different colors represent different neighbourhood categories.",fig.pos='h', fig.align = 'center', fig.pos="H"}
@@ -137,13 +137,13 @@ ggplot(data = subset_listings)+
 ```
 
 
-Figure IV shows the relationship between price and the number of house that this host list on Airbnb. Most neighbourhood have the the trend is almost the same,pointing to top-right Also, entire room/apartment group seems have more similar trend than that of private room.Some neighbourhood don't have enough private room to investigate the relationship with price.
+Figure IV shows the relationship between price and the number of house that this host list on Airbnb. Most neighbourhood have the trend is almost the same,pointing to top-right Also, entire room/apartment group seems have more similar trend than that of private room. Also, unlike other above variables, `log_house` doesn't have most similar pattern.
 
 ```{r,message=FALSE,warning=FALSE,echo=FALSE,fig.height=4, fig.width= 10,fig.cap="Data was separate into entire home/apt and private room. Different colors represent different neighbourhood categories.",fig.pos='h', fig.align = 'center', fig.pos="H"}
 ggplot(data = subset_listings)+
-  aes(y=log_price,x=log_score)+
+  aes(y=log_price,x=log_house)+
   geom_point(alpha = 0.3,aes(color = neighbourhood_cleansed))+
-  labs(title = "price vs number of bedroom",
+  labs(title = "price vs number of listings the host has",
        x="log(number of listings the host has)",
        y="log(price)")  + 
   geom_smooth(aes(color = neighbourhood_cleansed),se=F,method = "lm") + 
@@ -154,7 +154,7 @@ ggplot(data = subset_listings)+
 
 ### Model Fitting 
 
-Considering different neighbourhood categories, I will use multilevel model to fit the data. For `log_bed` and `log_bedroom`, the log of bed number and the log of the bedroom number, from EDA part, it is clear enough to include them as predictors, so I use varying slope and varing intercept in multilevel models. Besides, since I also have `room_type` as another level of cluster, when I fit the model, the AIC and BIC of using `room_type` as second level or first level will extremely big. So, I decide to only keep one category variable and keep `room_type` as dummy variable. Among all possible models, I choose the final model below. 
+Considering different neighbourhood categories, I will use multilevel model to fit the data. For `log_bed` and `log_bedroom`, the log of bed number and the log of the bedroom number, from EDA part, it is clear enough to include them as predictors, so I use varying slope and varying intercept in multilevel models. Besides, since I also have `room_type` as another level of cluster, when I fit the model, the AIC and BIC of using `room_type` as second level or first level will extremely big. So, I decide to only keep one category variable and keep `room_type` as dummy variable. Among all possible models, I choose the final model below. 
 
 ```{r,tidy = FALSE}
 model11 <- lmer(log_price ~ log_house + log_score + log_bed + log_bedroom + factor(room_type) + 
@@ -191,7 +191,7 @@ The intercept is larger than 0, which make sense because no matter which conditi
 
 ### Model Validation
 
-From the Residual plots in Figure V we can see that the mean of residuals is almost 0 and dots spread almost the same from the right to the leftAnd for the Q-Q plot in Figure IV, majority dots are on the lines so the normality is good. Figure V shows that there are not obvious leverage point. Figure VI and V is attached in Appendix. 
+From the Residual plots in Figure V we can see that the mean of residuals is almost 0 and dots spread almost the same from the right to the leftAnd for the Q-Q plot in Figure V, majority dots are on the lines so the normality is good. Figure V shows that there are not obvious leverage point. Figure V and VI is attached in Appendix. 
 
 ## Discussion 
 
@@ -263,4 +263,18 @@ ggplot(data.frame(lev=hatvalues(model11),pearson=residuals(model11,type="pearson
       aes(x=lev,y=pearson)) +
     geom_point() +
     theme_bw()
+```
+
+### Full list of coefficient 
+Random effects of model
+```{r,echo=FALSE}
+ranef(model11)
+```
+Fixed effects of model
+```{r echo=FALSE}
+fixef(model11)
+```
+Coefficients of model
+```{r echo=FALSE}
+coef(model11)
 ```
